@@ -99,6 +99,11 @@ module Clearance
     # Defaults to `::User`.
     # @return [ActiveRecord::Base]
     attr_writer :user_model
+    
+    # Optional eager load array for current user.
+    # Defaults to [].
+    # @return [Array]
+    attr_writer :eager_load
 
     # The controller class that all Clearance controllers will inherit from.
     # Defaults to `::ApplicationController`.
@@ -131,7 +136,8 @@ module Clearance
     # In the default configuration, this is the `User` class.
     # @return [Class]
     def user_model
-      (@user_model || "User").to_s.constantize
+      model = (@user_model || "User").to_s.constantize
+      model.send(:includes, @eager_load || [])
     end
 
     # The class representing the configured base controller.
