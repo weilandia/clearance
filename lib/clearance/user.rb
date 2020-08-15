@@ -60,7 +60,7 @@ module Clearance
   #   @see PasswordStrategies
   #   @return [void]
   #
-  # @!method authenticated?
+  # @!method authenticated?(password)
   #   Check's the provided password against the user's encrypted password using
   #   the configured password strategy. By default, this will be
   #   {PasswordStrategies::BCrypt#authenticated?}, but can be changed with
@@ -117,11 +117,13 @@ module Clearance
           if password.present? && user.authenticated?(password)
             user
           end
+        else
+          prevent_timing_attack
         end
       end
 
       def find_by_normalized_email(email)
-        find_by_email normalize_email(email)
+        find_by(email: normalize_email(email))
       end
 
       def normalize_email(email)
@@ -129,6 +131,13 @@ module Clearance
       end
 
       private
+
+      DUMMY_PASSWORD = "*"
+
+      def prevent_timing_attack
+        new(password: DUMMY_PASSWORD)
+        nil
+      end
 
       def password_strategy
         Clearance.configuration.password_strategy || PasswordStrategies::BCrypt
@@ -143,7 +152,7 @@ module Clearance
         validates :email,
           email: { strict_mode: true },
           presence: true,
-          uniqueness: { allow_blank: true },
+          uniqueness: { allow_blank: true, case_sensitive: false },
           unless: :email_optional?
 
         validates :password, presence: true, unless: :skip_password_validation?

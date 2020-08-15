@@ -5,15 +5,15 @@ describe User do
   it { is_expected.to have_db_index(:remember_token) }
   it { is_expected.to validate_presence_of(:email) }
   it { is_expected.to validate_presence_of(:password) }
+  it { is_expected.to allow_value("foo;@example.com").for(:email) }
+  it { is_expected.to allow_value("foo@.example.com").for(:email) }
+  it { is_expected.to allow_value("foo@example..com").for(:email) }
   it { is_expected.to allow_value("foo@example.co.uk").for(:email) }
   it { is_expected.to allow_value("foo@example.com").for(:email) }
   it { is_expected.to allow_value("foo+bar@example.com").for(:email) }
-  it { is_expected.not_to allow_value("foo@").for(:email) }
-  it { is_expected.not_to allow_value("foo@example..com").for(:email) }
-  it { is_expected.not_to allow_value("foo@.example.com").for(:email) }
-  it { is_expected.not_to allow_value("foo").for(:email) }
   it { is_expected.not_to allow_value("example.com").for(:email) }
-  it { is_expected.not_to allow_value("foo;@example.com").for(:email) }
+  it { is_expected.not_to allow_value("foo").for(:email) }
+  it { is_expected.not_to allow_value("foo@").for(:email) }
 
   describe "#email" do
     it "stores email in down case and removes whitespace" do
@@ -45,6 +45,35 @@ describe User do
       user = create(:user)
 
       expect(User.authenticate(user.email, "bad_password")).to be_nil
+    end
+
+    it "takes the same amount of time to authenticate regardless of whether user exists" do
+      user = create(:user)
+      password = user.password
+
+      user_exists_time = Benchmark.realtime do
+        User.authenticate(user.email, password)
+      end
+
+      user_does_not_exist_time = Benchmark.realtime do
+        User.authenticate("bad_email@example.com", password)
+      end
+
+      expect(user_does_not_exist_time). to be_within(0.001).of(user_exists_time)
+    end
+
+    it "takes the same amount of time to fail authentication regardless of whether user exists" do
+      user = create(:user)
+
+      user_exists_time = Benchmark.realtime do
+        User.authenticate(user.email, "bad_password")
+      end
+
+      user_does_not_exist_time = Benchmark.realtime do
+        User.authenticate("bad_email@example.com", "bad_password")
+      end
+
+      expect(user_does_not_exist_time). to be_within(0.001).of(user_exists_time)
     end
 
     it "is retrieved via a case-insensitive search" do

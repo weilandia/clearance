@@ -1,6 +1,8 @@
 require "spec_helper"
 
 describe Clearance::Configuration do
+  let(:config) { Clearance.configuration }
+
   context "when no user_model_name is specified" do
     it "defaults to User" do
       expect(Clearance.configuration.user_model).to eq ::User
@@ -26,6 +28,28 @@ describe Clearance::Configuration do
       Clearance.configure { |config| config.user_model = "MyUser" }
 
       expect(Clearance.configuration.user_model).to eq ::MyUser
+    end
+  end
+
+  context "when no parent_controller is specified" do
+    it "defaults to ApplicationController" do
+      expect(config.parent_controller).to eq ::ApplicationController
+    end
+  end
+
+  context "when a custom parent_controller is specified" do
+    before(:each) do
+      MyController = Class.new
+    end
+
+    after(:each) do
+      Object.send(:remove_const, :MyController)
+    end
+
+    it "is used instead of ApplicationController" do
+      Clearance.configure { |config| config.parent_controller = MyController }
+
+      expect(config.parent_controller).to eq ::MyController
     end
   end
 
@@ -159,28 +183,22 @@ describe Clearance::Configuration do
   end
 
   describe "#rotate_csrf_on_sign_in?" do
-    it "defaults to falsey and warns" do
-      Clearance.configuration = Clearance::Configuration.new
-      allow(Clearance.configuration).to receive(:warn)
-
-      expect(Clearance.configuration.rotate_csrf_on_sign_in?).to be_falsey
-      expect(Clearance.configuration).to have_received(:warn)
-    end
-
-    it "is true and does not warn when `rotate_csrf_on_sign_in` is true" do
+    it "is true when `rotate_csrf_on_sign_in` is set to true" do
       Clearance.configure { |config| config.rotate_csrf_on_sign_in = true }
-      allow(Clearance.configuration).to receive(:warn)
 
       expect(Clearance.configuration.rotate_csrf_on_sign_in?).to be true
-      expect(Clearance.configuration).not_to have_received(:warn)
     end
 
-    it "is false and does not warn when `rotate_csrf_on_sign_in` is false" do
+    it "is false when `rotate_csrf_on_sign_in` is set to false" do
       Clearance.configure { |config| config.rotate_csrf_on_sign_in = false }
-      allow(Clearance.configuration).to receive(:warn)
 
       expect(Clearance.configuration.rotate_csrf_on_sign_in?).to be false
-      expect(Clearance.configuration).not_to have_received(:warn)
+    end
+
+    it "is false when `rotate_csrf_on_sign_in` is set to nil" do
+      Clearance.configure { |config| config.rotate_csrf_on_sign_in = nil }
+
+      expect(Clearance.configuration.rotate_csrf_on_sign_in?).to be false
     end
   end
 end

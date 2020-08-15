@@ -3,7 +3,8 @@ require 'clearance/version'
 
 Gem::Specification.new do |s|
   s.add_dependency 'bcrypt', '>= 3.1.1'
-  s.add_dependency 'email_validator', '~> 1.4'
+  s.add_dependency 'argon2', '~> 2.0', '>= 2.0.2'
+  s.add_dependency 'email_validator', '~> 2.0'
   s.add_dependency 'railties', '>= 5.0'
   s.add_dependency 'activemodel', '>= 5.0'
   s.add_dependency 'activerecord', '>= 5.0'
@@ -28,7 +29,13 @@ Gem::Specification.new do |s|
     'Galen Frechette',
     'Josh Steiner'
   ]
-  s.description = 'Rails authentication & authorization with email & password.'
+  s.description = <<-DESCRIPTION
+    Clearance is built to support authentication and authorization via an
+    email/password sign-in mechanism in applications.
+
+    It provides some core classes commonly used for these features, along with
+    some opinionated defaults - but is intended to be easy to override.
+  DESCRIPTION
   s.email = 'support@thoughtbot.com'
   s.extra_rdoc_files = %w(LICENSE README.md)
   s.files = `git ls-files`.split("\n")

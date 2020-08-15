@@ -3,28 +3,103 @@
 The noteworthy changes for each Clearance version are included here. For a
 complete changelog, see the git history for each version via the version links.
 
-## [Unreleased]
-
-### Added
-
-- Add ability to configure BCrypt computational cost of hash calculation.
+## [2.3.0] - August 14, 2020
 
 ### Fixed
 
-- Fix issue where invalid params could raise `NoMethodError` when updating and
-  resetting passwords.
+- Delete cookie correctly when a callable object is set as the custom domain
+  setting.
+- Strip `as` parameter when signing in through the back door.
+- Remove broken autoload for deprecated password strategies.
 
-[Unreleased]: https://github.com/thoughtbot/clearance/compare/v2.0.0.beta2...HEAD
+### Changed
 
-## [2.0.0.beta2] - September 17, 2019
+- Deliver password reset email inline rather than in the background.
+- Remove unnecessary unsafe interpolation in erb templates.
+
+[2.3.0]: https://github.com/thoughtbot/clearance/compare/v2.2.0...v2.3.0
+
+## [2.2.1] - August 7, 2020
+
+### Fixed
+
+- Prevent user enumeration by timing attacks. Trying to log in with an
+  unrecognized email address will now take the same amount of time as for a user
+  that does exist in the system.
+
+[2.2.1]: https://github.com/thoughtbot/clearance/compare/v2.2.0...v2.2.1
+
+## [2.2.0] - July 9, 2020
+
+### Added
+
+- Add an Argon2 password strategy
+
+### Fixed
+
+- Use strings instead of classes on guard classes, avoids Rails deprecation
+  warning.
+- Use `find_by` style for finders, improves neo4j support
+- Provide explicit case sensitivity option for email uniqueness, avoid Rails
+  deprecation warning.
+
+[2.2.0]: https://github.com/thoughtbot/clearance/compare/v2.1.0...v2.2.0
+
+## [2.1.0] - December 19, 2019
+
+### Added
+
+- Add a `parent_controller` configuration option to specify the controller that
+  Clearance's `BaseController` will inherit from. Defaults to a value of
+  `ApplicationController`.
+- Use the configured `primary_key_type` from the Active Record settings of the
+  project including Clearance, if it is set, while generating migrations. For
+  example, a setting of `:uuid` in a Rails app using Clearance will cause the
+  clearance-generated migrations to use this for the `users` table id type.
+
+### Fixed
+
+- Delete cookies correctly when a custom domain setting is being used.
+- Do not set the authorization cookie on requests which did not exercise the
+  authorization code. Reduces the chances of leaving an auth cookie in a
+  publicly cacheable page that didn't require authorization to access.
+
+### Changed
+
+- Update the `email_validator` gem to a newer version embrace the more relaxed
+  email validation options which it now defaults to.
+- When a password reset request is submitted without an email address, a flash
+  alert is now provided. Previously this continued silently as though it had
+  worked. We still proceed that way when there is an invalid (but present)
+  value, so as not to reveal existent vs. non-existent emails in the database.
+
+### Removed
+
+- Remove an unused route to `passwords#create` nested under `users`.
+- No longer include the (rarely used in practice) application layout as part of
+  the views installer; but continue to provide some stock sign-in/out and flash
+  partial code in the gem installation README output.
+
+### Deprecated
+
+- Remove the existing deprecation notice around the `rotate_csrf_on_sign_in`
+  setting, and make that setting default to true.
+
+[2.1.0]: https://github.com/thoughtbot/clearance/compare/v2.0.0...v2.1.0
+
+## [2.0.0] - November 12, 2019
 
 ### Added
 
 - Add support for Rails version 6
 - Allow `cookie_domain` to be configured with a lambda for custom configuration
+- Add ability to configure BCrypt computational cost of hash calculation.
+- Add `same_site` configuration option for increased CSRF protection.
 
 ### Fixed
 
+- Fix issue where invalid params could raise `NoMethodError` when updating and
+  resetting passwords.
 - The backdoor auth mechanism now supports scenarios where `Rails.env` has been
   configured via env variables other than `RAILS_ENV` (`RACK_ENV` for example).
 
@@ -32,15 +107,6 @@ complete changelog, see the git history for each version via the version links.
 
 - Removed support for Ruby versions older than 2.4
 - Removed support for Rails versions older than 5.0
-
-[2.0.0.beta2]: https://github.com/thoughtbot/clearance/compare/v2.0.0.beta1...v2.0.0.beta2
-
-## [2.0.0.beta1] - April 12, 2019
-
-### Removed
-
-- Removed support for Ruby versions older than 2.3
-- Removed support for Rails versions older than 4.2
 - Removed all deprecated code from Clearance 1.x
 
 ### Changed
@@ -48,7 +114,7 @@ complete changelog, see the git history for each version via the version links.
 - Flash messages now use `flash[:alert]` rather than `flash[:notice]` as they
   were used as errors more often than notices.
 
-[2.0.0.beta1]: https://github.com/thoughtbot/clearance/compare/v1.17.0...v2.0.0.beta1
+[2.0.0]: https://github.com/thoughtbot/clearance/compare/v1.17.0...v2.0.0
 
 ## [1.17.0] - April 11, 2019
 

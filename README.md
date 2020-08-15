@@ -19,7 +19,7 @@ monitored by contributors.
 
 ## Getting Started
 
-Clearance is a Rails engine tested against Rails `>= 3.2` and Ruby `>= 1.9.3`.
+Clearance is a Rails engine tested against Rails `>= 5.0` and Ruby `>= 2.4.0`.
 
 You can add it to your Gemfile with:
 
@@ -59,16 +59,14 @@ Clearance.configure do |config|
   config.mailer_sender = "reply@example.com"
   config.password_strategy = Clearance::PasswordStrategies::BCrypt
   config.redirect_url = "/"
-  config.rotate_csrf_on_sign_in = false
+  config.rotate_csrf_on_sign_in = true
+  config.same_site = nil
   config.secure_cookie = false
   config.sign_in_guards = []
   config.user_model = "User"
+  config.parent_controller = "ApplicationController"
 end
 ```
-
-The install generator will set `rotate_csrf_on_sign_in` to `true`, so new
-installations will get this behavior from the start. This helps avoid session
-fixation attacks, and will become the default in Clearance 2.0.
 
 ## Use
 
@@ -281,23 +279,12 @@ for access to additional, user-contributed translations.
 See [lib/clearance/user.rb](/lib/clearance/user.rb) for the default behavior.
 You can override those methods as needed.
 
-### Deliver Email in Background Job
-
-Clearance has a password reset mailer. If you are using Rails 4.2 and Clearance
-1.6 or greater, Clearance will use ActiveJob's `deliver_later` method to
-automatically take advantage of your configured queue.
-
-If you are using an earlier version of Rails, you can override the
-`Clearance::Passwords` controller and define the behavior you need in the
-`deliver_email` method.
-
-```ruby
-class PasswordsController < Clearance::PasswordsController
-  def deliver_email(user)
-    ClearanceMailer.delay.change_password(user)
-  end
-end
-```
+Note that there are some model-level validations (see above link for detail)
+which the `Clearance::User` module will add to the configured model class and
+which may conflict with or duplicate already present validations on the `email`
+and `password` attributes. Over-riding the `email_optional?` or
+`skip_password_validation?` methods to return `true` will disable those
+validations from being added.
 
 ## Extending Sign In
 
@@ -329,7 +316,7 @@ Here's an example custom guard to handle email confirmation:
 
 ```ruby
 Clearance.configure do |config|
-  config.sign_in_guards = [EmailConfirmationGuard]
+  config.sign_in_guards = ["EmailConfirmationGuard"]
 end
 ```
 

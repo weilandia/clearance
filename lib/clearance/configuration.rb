@@ -42,6 +42,16 @@ module Clearance
     # @return [Boolean]
     attr_accessor :httponly
 
+    # Same-site cookies ("First-Party-Only" or "First-Party") allow servers to
+    # mitigate the risk of CSRF and information leakage attacks by asserting
+    # that a particular cookie should only be sent with requests initiated from
+    # the same registrable domain.
+    # Defaults to `nil`. For more, see
+    # [RFC6265](https://tools.ietf.org/html/draft-west-first-party-cookies-06#section-4.1.1).
+    # and https://github.com/rack/rack/blob/6eda04886e3a57918ca2d6a482fda02a678fef0a/lib/rack/utils.rb#L232-L244
+    # @return [String]
+    attr_accessor :same_site
+
     # Controls the address the password reset email is sent from.
     # Defaults to reply@example.com.
     # @return [String]
@@ -88,7 +98,12 @@ module Clearance
     # The ActiveRecord class that represents users in your application.
     # Defaults to `::User`.
     # @return [ActiveRecord::Base]
-    attr_accessor :user_model
+    attr_writer :user_model
+
+    # The controller class that all Clearance controllers will inherit from.
+    # Defaults to `::ApplicationController`.
+    # @return [ActionController::Base]
+    attr_writer :parent_controller
 
     # The array of allowed environments where `Clearance::BackDoor` is enabled.
     # Defaults to ["test", "ci", "development"]
@@ -103,16 +118,27 @@ module Clearance
       @cookie_name = "remember_token"
       @cookie_path = '/'
       @httponly = true
+      @same_site = nil
       @mailer_sender = 'reply@example.com'
       @redirect_url = '/'
-      @rotate_csrf_on_sign_in = nil
+      @rotate_csrf_on_sign_in = true
       @routes = true
       @secure_cookie = false
       @sign_in_guards = []
     end
 
+    # The class representing the configured user model.
+    # In the default configuration, this is the `User` class.
+    # @return [Class]
     def user_model
       (@user_model || "User").to_s.constantize
+    end
+
+    # The class representing the configured base controller.
+    # In the default configuration, this is the `ApplicationController` class.
+    # @return [Class]
+    def parent_controller
+      (@parent_controller || "ApplicationController").to_s.constantize
     end
 
     # Is the user sign up route enabled?
@@ -167,22 +193,7 @@ module Clearance
     end
 
     def rotate_csrf_on_sign_in?
-      if rotate_csrf_on_sign_in.nil?
-        warn <<-EOM.squish
-          Clearance's `rotate_csrf_on_sign_in` configuration setting is unset and
-          will be treated as `false`. Setting this value to `true` is
-          recommended to avoid session fixation attacks and will be the default
-          in Clearance 2.0. It is recommended that you opt-in to this setting
-          now and test your application. To silence this warning, set
-          `rotate_csrf_on_sign_in` to `true` or `false` in Clearance's
-          initializer.
-
-          For more information on session fixation, see:
-            https://www.owasp.org/index.php/Session_fixation
-        EOM
-      end
-
-      rotate_csrf_on_sign_in
+      !!rotate_csrf_on_sign_in
     end
   end
 

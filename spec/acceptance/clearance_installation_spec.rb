@@ -36,9 +36,6 @@ describe "Clearance Installation" do
        --skip-keeps
        --skip-sprockets
     CMD
-
-    FileUtils.rm_f("public/index.html")
-    FileUtils.rm_f("app/views/layouts/application.html.erb")
   end
 
   def testapp_templates
@@ -47,7 +44,6 @@ describe "Clearance Installation" do
 
   def configure_test_app
     FileUtils.rm_f("public/index.html")
-    FileUtils.rm_f("app/views/layouts/application.html.erb")
     FileUtils.cp_r(testapp_templates, "..")
   end
 
